@@ -4,12 +4,14 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mylime.domain.model.Beer
 import com.example.mylime.model.ResponseItem
 import com.example.mylime.repository.BeersRepository
 import com.example.mylime.utils.ConnectionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,8 +27,13 @@ class DetailViewModel @Inject constructor(
     fun getDetail(id: Int) {
         state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            val beer = beersRepository.getBeer(id)
-            state.update { it.copy(beer = beer, isLoading = false) }
+            beersRepository.getBeer(id).fold(
+                onSuccess = {response ->
+                    state.update { it.copy(beer = response, isLoading = false) }
+                }, onFailure = {
+                    state.update { it.copy(isError = true, isLoading = false) }
+                }
+            )
             launch {
                 connectionHandler.callback.collectLatest { connected ->
                     val previousStateConnection = state.value.isConnected
@@ -59,8 +66,9 @@ class DetailViewModel @Inject constructor(
     }
 
     data class BeerState(
-        val beer: ResponseItem? = null,
+        val beer: Beer? = null,
         val isLoading: Boolean = false,
-        val isConnected: Boolean? = null
+        val isConnected: Boolean? = null,
+        val isError: Boolean = false,
     )
 }

@@ -7,8 +7,8 @@ import retrofit2.http.Path
 
 interface RetrofitService {
     @GET("beers")
-    suspend fun getBeers():Response
+    suspend fun getBeers():retrofit2.Response<Response>
 
     @GET("beers/{id}")
-    suspend fun getBeer(@Path("id") id:Int):List<ResponseItem>
+    suspend fun getBeer(@Path("id") id:Int):retrofit2.Response<List<ResponseItem>>
 }

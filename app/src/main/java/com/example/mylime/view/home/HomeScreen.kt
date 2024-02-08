@@ -15,6 +15,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -24,8 +27,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.mylime.domain.model.Beer
 import com.example.mylime.model.ResponseItem
 import com.example.mylime.preview.BeerProvider
 import com.example.mylime.ui.theme.MyLimeTheme
@@ -33,15 +38,21 @@ import com.example.mylime.ui.theme.MyLimeTheme
 @Composable
 fun HomeScreen(
     onItemClick: (Int) -> Unit,
-    beers: List<ResponseItem>? = emptyList(),
+    beers: List<Beer>? = emptyList(),
     isLoading: Boolean = false,
     isConnected: Boolean? = null
 ) {
-    isConnected?.let {
-        if (!isConnected){
-            Toast.makeText(LocalContext.current,"Internet assente", Toast.LENGTH_SHORT).show()
-        }else{
-            Toast.makeText(LocalContext.current,"Internet è tornato", Toast.LENGTH_SHORT).show()
+    val context = LocalContext.current
+    val connected = remember {
+        mutableStateOf(isConnected)
+    }
+    LaunchedEffect(connected){
+        connected.value?.let {
+            if (!it){
+                Toast.makeText(context,"Internet assente", Toast.LENGTH_SHORT).show()
+            }else{
+                Toast.makeText(context,"Internet è tornato", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     if (isLoading) {
@@ -67,7 +78,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun BeerItem(item: ResponseItem,onItemClick: (Int) -> Unit) {
+private fun BeerItem(item: Beer,onItemClick: (Int) -> Unit) {
 Column(modifier = Modifier.clickable {
     item.id?.let { onItemClick(it) }
 }) {
@@ -95,7 +106,7 @@ Column(modifier = Modifier.clickable {
 @Preview
 @Composable
 private fun PreviewBeerItem(
-    @PreviewParameter(BeerProvider::class) parameter: ResponseItem
+    @PreviewParameter(BeerProvider::class) parameter: Beer
 ) {
     MyLimeTheme {
         BeerItem(item = parameter, onItemClick = {})
