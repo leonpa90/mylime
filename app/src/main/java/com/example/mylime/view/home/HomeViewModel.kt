@@ -22,18 +22,9 @@ class HomeViewModel @Inject constructor(
 
     val state: MutableStateFlow<BeerState> = MutableStateFlow(BeerState())
 
-    private val _intent: MutableSharedFlow<HomeIntent> = MutableSharedFlow()
-
     init {
         viewModelScope.launch {
             fetchBeers()
-            launch {
-                _intent.asSharedFlow().collect {
-                    when (it) {
-                        FetchBeers -> fetchBeers()
-                    }
-                }
-            }
             launch {
                 connectionHandler.callBack.collect { connectionState ->
                     if (!state.value.isConnected && connectionState) {
@@ -44,12 +35,6 @@ class HomeViewModel @Inject constructor(
                     state.update { it.copy(isConnected = connectionState) }
                 }
             }
-        }
-    }
-
-    fun setIntent(homeIntent: HomeIntent) {
-        viewModelScope.launch {
-            _intent.emit(homeIntent)
         }
     }
 
@@ -71,7 +56,4 @@ class HomeViewModel @Inject constructor(
         val isConnected: Boolean = true,
         val isError: Boolean = false,
     )
-
-    sealed class HomeIntent
-    data object FetchBeers : HomeIntent()
 }
